@@ -41,6 +41,9 @@ export default function Home() {
 
   const handleVerify = async () => {
     try {
+      if (token === "") return setStatus("❌ Missing JWT Token");
+      if (claimsInput === "") return setStatus("❌ Missing Claims");
+
       const isValid = await verifyJWT(token, jwk);
       if (!isValid) return setStatus("❌ Signature Invalid");
 
