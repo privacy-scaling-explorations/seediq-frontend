@@ -1,30 +1,9 @@
 "use client";
 
 import { useState } from "react";
-
-async function verifyJWT(token: string, jwk: JsonWebKey): Promise<boolean> {
-  const [header, payload, signature] = token.split(".");
-  const data = new TextEncoder().encode(`${header}.${payload}`);
-  const sigBytes = Uint8Array.from(
-    atob(signature.replace(/-/g, "+").replace(/_/g, "/")),
-    (c) => c.charCodeAt(0)
-  );
-
-  const key = await crypto.subtle.importKey(
-    "jwk",
-    jwk,
-    { name: "ECDSA", namedCurve: "P-256" },
-    true,
-    ["verify"]
-  );
-
-  return crypto.subtle.verify(
-    { name: "ECDSA", hash: "SHA-256" },
-    key,
-    sigBytes,
-    data
-  );
-}
+import { sha256 } from "@noble/hashes/sha256";
+import { base64url } from "jose";
+import { verifyJWT } from "./utils/utils";
 
 export default function Home() {
   const [token, setToken] = useState("");
@@ -34,7 +13,6 @@ export default function Home() {
   const [jwk, setJwk] = useState<JsonWebKey>({
     kty: "EC",
     crv: "P-256",
-    // kid: "key-1",
     x: "rJUIrWnliWn5brtxVJPlGNZl2hKTosVMlWDc-G-gScM",
     y: "mm3p9quG010NysYgK-CAQz2E-wTVSNeIHl_HvWaaM6I",
   });
@@ -52,10 +30,14 @@ export default function Home() {
       if (!sd || !Array.isArray(sd))
         return setStatus("✅ Valid Signature (no hashed claims)");
 
-      const hashedClaims = claimsInput
+      const claims = claimsInput
         .split("\n")
         .map((s) => s.trim())
         .filter(Boolean);
+
+      const hashedClaims = claims.map((e) => {
+        return base64url.encode(sha256(e)).toString();
+      });
 
       for (let i = 0; i < sd.length; i++) {
         if (sd[i] !== hashedClaims[i]) {
@@ -78,6 +60,16 @@ export default function Home() {
       <div className="max-w-3xl mx-auto bg-white shadow p-6 rounded-xl space-y-6">
         <h1 className="text-2xl font-bold">Seediq JWT Validator</h1>
 
+        <div className="flex items-center justify-between">
+          <a
+            href="https://github.com/adria0/seediq-playground"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-sm text-blue-600 hover:underline"
+          >
+            GitHub ↗
+          </a>
+        </div>
         <textarea
           placeholder="JWT Token"
           value={token}
@@ -87,7 +79,7 @@ export default function Home() {
         />
 
         <textarea
-          placeholder="Claims (one per line)"
+          placeholder="Raw Claims (one per line)"
           value={claimsInput}
           onChange={(e) => setClaimsInput(e.target.value)}
           className="w-full border p-2 rounded"
