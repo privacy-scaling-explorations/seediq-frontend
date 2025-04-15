@@ -5,8 +5,9 @@ import { sha256 } from "@noble/hashes/sha256";
 import { base64url } from "jose";
 import { verifyJWT } from "./utils/utils";
 import { JwtProver } from "./utils/prover";
-import { DEFAULT_INPUT } from "./utils/constant";
 import * as snarkjs from "snarkjs";
+import { generateInputs } from "./utils/generate_inputs";
+import { JwkEcdsaPublicKey } from "./utils/es256";
 
 export default function Home() {
   const [token, setToken] = useState("");
@@ -15,7 +16,7 @@ export default function Home() {
   const [proof, setProof] = useState<snarkjs.Groth16Proof | null>(null);
   const [signals, setSignals] = useState<string[] | null>(null);
 
-  const [jwk, setJwk] = useState<JsonWebKey>({
+  const [jwk, setJwk] = useState<JwkEcdsaPublicKey>({
     kty: "EC",
     crv: "P-256",
     x: "rJUIrWnliWn5brtxVJPlGNZl2hKTosVMlWDc-G-gScM",
@@ -63,9 +64,19 @@ export default function Home() {
   const handleGenerateProof = async () => {
     try {
       setStatus("⏳ Generating proof...");
-      const { proof, publicSignals } = await JwtProver.generateProof(
-        DEFAULT_INPUT
+      const inputs = generateInputs(token, jwk, [
+        "JciGc5bKidOGmxjuvC8LdUykaVXBXBPhBX1kXpDe-Lo",
+        "pVOw2Nj57G2NkeVHBCWwhEBjufSJhp9lp3m5W9mAh9A",
+      ]);
+      const input = JSON.parse(
+        JSON.stringify(
+          inputs,
+          (_, v) => (typeof v === "bigint" ? v.toString() : v),
+          2
+        )
       );
+      const { proof, publicSignals } = await JwtProver.generateProof(input);
+
       setProof(proof);
       setSignals(publicSignals);
       setStatus("✅ Proof generated successfully");
