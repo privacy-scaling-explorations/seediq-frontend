@@ -1,17 +1,16 @@
 import { CIRCUIT_ASSETS, JWTCircuitInput } from "./constant";
 import * as snarkjs from "snarkjs";
 
+export async function fetchBinary(path: string): Promise<ArrayBuffer> {
+  const res = await fetch(path);
+  if (!res.ok) throw new Error(`Failed to fetch ${path}`);
+  return await res.arrayBuffer();
+}
 export class JwtProver {
-  static async fetchBinary(path: string): Promise<ArrayBuffer> {
-    const res = await fetch(path);
-    if (!res.ok) throw new Error(`Failed to fetch ${path}`);
-    return await res.arrayBuffer();
-  }
-
   static async generateProof(input: JWTCircuitInput) {
     try {
-      const wasm = new Uint8Array(await this.fetchBinary(CIRCUIT_ASSETS.WASM));
-      const zkey = new Uint8Array(await this.fetchBinary(CIRCUIT_ASSETS.ZKEY));
+      const wasm = new Uint8Array(await fetchBinary(CIRCUIT_ASSETS.WASM));
+      const zkey = new Uint8Array(await fetchBinary(CIRCUIT_ASSETS.ZKEY));
 
       const { proof, publicSignals } = await snarkjs.groth16.fullProve(
         input,
