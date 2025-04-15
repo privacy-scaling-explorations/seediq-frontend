@@ -5,7 +5,7 @@ export const CIRCUIT_ASSETS = {
   VKEY: "jwt_build/groth16_vkey.json",
 };
 
-export const DEFAULT_INPUT: JWTCircuitInput = {
+export const DEFAULT_INPUT = {
   sig_r: [
     "2601086891180",
     "7693099891901",
@@ -1081,14 +1081,14 @@ export const DEFAULT_INPUT: JWTCircuitInput = {
 };
 
 export type JWTCircuitInput = {
-  sig_r: string[];
-  sig_s: string[];
-  pubkey: [string[], string[]];
-  message: string[];
+  sig_r: bigint[];
+  sig_s: bigint[];
+  pubkey: [bigint[], bigint[]];
+  message: bigint[];
   messageLength: number;
   periodIndex: number;
   matchesCount: number;
-  matchSubstring: string[][];
+  matchSubstring: bigint[][];
   matchLength: number[];
   matchIndex: number[];
 };

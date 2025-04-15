@@ -5,8 +5,9 @@ import { sha256 } from "@noble/hashes/sha256";
 import { base64url } from "jose";
 import { verifyJWT } from "./utils/utils";
 import { JwtProver } from "./utils/prover";
-import { DEFAULT_INPUT } from "./utils/constant";
 import * as snarkjs from "snarkjs";
+import { generateInputs } from "./utils/generate_inputs";
+import { JwkEcdsaPublicKey } from "./utils/es256";
 
 export default function Home() {
   const [token, setToken] = useState("");
@@ -15,17 +16,19 @@ export default function Home() {
   const [proof, setProof] = useState<snarkjs.Groth16Proof | null>(null);
   const [signals, setSignals] = useState<string[] | null>(null);
 
-  const [jwk, setJwk] = useState<JsonWebKey>({
+  const [jwk, setJwk] = useState<JwkEcdsaPublicKey>({
     kty: "EC",
     crv: "P-256",
     x: "rJUIrWnliWn5brtxVJPlGNZl2hKTosVMlWDc-G-gScM",
     y: "mm3p9quG010NysYgK-CAQz2E-wTVSNeIHl_HvWaaM6I",
   });
 
+  const [inputs, setInputs] = useState<any | null>(null);
+
   const handleValidate = async () => {
     try {
-      if (token === "") return setStatus("❌ Missing JWT Token");
-      if (claimsInput === "") return setStatus("❌ Missing Claims");
+      if (!token) return setStatus("❌ Missing JWT Token");
+      if (!claimsInput) return setStatus("❌ Missing Claims");
 
       const isValid = await verifyJWT(token, jwk);
       if (!isValid) return setStatus("❌ Signature Invalid");
@@ -52,22 +55,32 @@ export default function Home() {
 
       setStatus("✅ Valid Signature + Claims Match");
     } catch (err) {
-      if (err instanceof Error) {
-        setStatus(`❌ Error: ${err.message}`);
-      } else {
-        setStatus("❌ An unknown error occurred");
-      }
+      if (err instanceof Error) setStatus(`❌ ${err.message}`);
+      else setStatus("❌ Unknown error");
     }
   };
 
   const handleGenerateProof = async () => {
     try {
+      if (!token) return setStatus("❌ Provide JWT first");
+
+      setStatus("⏳ Generating circuit inputs...");
+      const input = await generateInputs(token, jwk);
+      console.log("Circuit Inputs:", input);
+      console.log("Circuit Inputs:", input);
+
+      // const inputs = JSON.stringify(
+      //   input,
+      //   (_, v) => (typeof v === "bigint" ? v.toString() : v),
+      //   2
+      // );
+      // setInputs(input);
+
       setStatus("⏳ Generating proof...");
-      const { proof, publicSignals } = await JwtProver.generateProof(
-        DEFAULT_INPUT
-      );
+      // const { proof, publicSignals } = await JwtProver.generateProof(inputs);
+
       setProof(proof);
-      setSignals(publicSignals);
+      // setSignals(publicSignals);
       setStatus("✅ Proof generated successfully");
     } catch (err) {
       console.error(err);
@@ -98,7 +111,7 @@ export default function Home() {
     <main className="min-h-screen bg-gray-50 p-8">
       <div className="max-w-3xl mx-auto bg-white shadow p-6 rounded-xl space-y-6">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold">Seediq JWT Validator</h1>
+          <h1 className="text-2xl font-bold">Seediq JWT ZK Validator</h1>
           <a
             href="https://github.com/adria0/seediq-playground"
             target="_blank"
@@ -174,6 +187,15 @@ export default function Home() {
           >
             {status}
           </p>
+        )}
+
+        {inputs && (
+          <div>
+            <h2 className="text-lg font-semibold mt-4">Circuit Inputs</h2>
+            <pre className="text-sm bg-gray-100 p-4 rounded overflow-auto max-h-64">
+              {JSON.stringify(inputs, null, 2)}
+            </pre>
+          </div>
         )}
 
         {proof && (
