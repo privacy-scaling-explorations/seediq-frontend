@@ -24,3 +24,9 @@ export async function verifyJWT(
     data
   );
 }
+
+export async function readFileAsBuffer(path: string): Promise<ArrayBuffer> {
+  const res = await fetch(path);
+  if (!res.ok) throw new Error(`Failed to fetch ${path}`);
+  return await res.arrayBuffer();
+}
