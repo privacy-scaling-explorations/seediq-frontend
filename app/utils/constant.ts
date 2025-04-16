@@ -1,7 +1,7 @@
 // check public folder
 export const CIRCUIT_ASSETS = {
   WASM: "jwt_build/jwt.wasm",
-  ZKEY: "jwt_build/groth16_pkey.zkey",
+  ZKEY: "https://cloudflare-ipfs.com/ipfs/bafybeidadhsifsxlnn3jvrnfkarzzyc7v4i4mhzyx6erew6ejkxyfwtemm",
   VKEY: "jwt_build/groth16_vkey.json",
 };
 
