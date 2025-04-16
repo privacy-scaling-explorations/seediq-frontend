@@ -1,7 +1,7 @@
 // check public folder
 export const CIRCUIT_ASSETS = {
   WASM: "jwt_build/jwt.wasm",
-  ZKEY: "https://ipfs.io/ipfs/bafybeidadhsifsxlnn3jvrnfkarzzyc7v4i4mhzyx6erew6ejkxyfwtemm",
+  ZKEY: "https://gateway.pinata.cloud/ipfs/bafybeidadhsifsxlnn3jvrnfkarzzyc7v4i4mhzyx6erew6ejkxyfwtemm",
   VKEY: "jwt_build/groth16_vkey.json",
 };
 
